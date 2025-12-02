@@ -5,6 +5,7 @@ use IEEE.NUMERIC_STD.ALL;
 entity Rotor is
     Port ( 
         input_val  : in  integer; -- Input angka 0 sampai 25 (A=0, Z=25)
+		current_pos : in  integer; -- Posisi Putaran Rotor (0-25)
         output_val : out integer  -- Output angka 0 sampai 25
     );
 end Rotor;
@@ -21,18 +22,34 @@ architecture Dataflow of Rotor is
     --  A   B   C  D   E  F  G   H   I   J   K   L   M   N   O  P   Q   R   S   T  U  V  W   X  Y  Z
     );
 
-    -- Memastikan angka input tidak melebihi 
-    function safe_limit(val : integer) return integer is
+	-- Fungsi pembantu untuk perhitungan modulus (supaya tidak minus/overflow)
+    function calc_offset(val_in : integer; offset : integer) return integer is
+        variable safe_in : integer := 0;
+        variable result  : integer := 0;
     begin
-        if val > 25 then
-            return val mod 26;
+		-- 1. Sanitasi Input: Pastikan input bersih dari angka negatif/sampah
+        if (val_in >= 0) and (val_in <= 25) then
+            safe_in := val_in;
         else
-            return val;
+            safe_in := 0; -- Default ke 'A' jika error
         end if;
+
+        -- 2. Hitung Penjumlahan
+        result := safe_in + offset;
+        
+        -- 3. Logika Modulo 
+        if result > 25 then 
+            result := result - 26;
+        elsif result < 0 then 
+            result := result + 26;
+        end if;
+        
+        -- 4. Return Final (Pasti tereksekusi karena di luar if-else)
+        return result;
     end function;
 
 begin
-
-    output_val <= wiring_table( safe_limit(input_val) );
+	-- Logika Enigma: (Input + Posisi) masuk ke Array
+    output_val <= wiring_table( calc_offset(input_val, current_pos) );
 
 end Dataflow;
