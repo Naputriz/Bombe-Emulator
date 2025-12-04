@@ -25,6 +25,7 @@ architecture Dataflow of Rotor is
 	-- Fungsi pembantu untuk perhitungan modulus (supaya tidak minus/overflow)
     function calc_offset(val_in : integer; offset : integer) return integer is
         variable safe_in : integer := 0;
+		variable safe_off : integer := 0; 
         variable result  : integer := 0;
     begin
 		-- 1. Sanitasi Input: Pastikan input bersih dari angka negatif/sampah
@@ -34,8 +35,14 @@ architecture Dataflow of Rotor is
             safe_in := 0; -- Default ke 'A' jika error
         end if;
 
+		if (offset >= 0) and (offset <= 25) then
+            safe_off := offset;
+        else
+            safe_off := 0; 
+        end if;
+		
         -- 2. Hitung Penjumlahan
-        result := safe_in + offset;
+        result := safe_in + safe_off;
         
         -- 3. Logika Modulo 
         if result > 25 then 
