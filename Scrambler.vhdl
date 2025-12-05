@@ -17,11 +17,15 @@ end Scrambler;
 architecture Structural of Scrambler is
 
     -- Kabel Internal untuk menghubungkan antar kotak
-    signal wire_1 : integer := 0; -- Dari Rotor 1 ke Rotor 2
-    signal wire_2 : integer := 0; -- Dari Rotor 2 ke Rotor 3
-    signal wire_3 : integer := 0; -- Dari Rotor 3 ke Reflektor
-	-- Untuk sementara buat simplifikasi, satu arah dulu (R1->R2->R3->Reflector->Output)
-	-- Bisa tambah balik lagi kalau mau
+    -- Jalur maju 
+    signal wire_f1 : integer := 0; -- R1 -> R2
+    signal wire_f2 : integer := 0; -- R2 -> R3
+    signal wire_f3 : integer := 0; -- R3 -> Reflector
+	
+	-- Jalur mundur 
+    signal wire_r1 : integer := 0; -- Reflector -> Inv_R3
+    signal wire_r2 : integer := 0; -- Inv_R3 -> Inv_R2
+    signal wire_r3 : integer := 0; -- Inv_R2 -> Inv_R1 (Output)
 
 begin
 
@@ -30,30 +34,48 @@ begin
         port map (
             input_val   => char_in,
             current_pos => pos_r1,
-            output_val  => wire_1  -- Keluar ke kabel 1
+            output_val  => wire_f1  -- Keluar ke kabel 1
         );
 
     -- Instansiasi Rotor 2 
     U_Rotor2: entity work.Rotor
         port map (
-            input_val   => wire_1, -- Masuk dari kabel 1
+            input_val   => wire_f1, -- Masuk dari kabel 1
             current_pos => pos_r2,
-            output_val  => wire_2  -- Keluar ke kabel 2
+            output_val  => wire_f2  -- Keluar ke kabel 2
         );
 
     -- Instansiasi Rotor 3 
     U_Rotor3: entity work.Rotor
         port map (
-            input_val   => wire_2,
+            input_val   => wire_f2,
             current_pos => pos_r3,
-            output_val  => wire_3
+            output_val  => wire_f3
         );
 
     -- Instansiasi Reflektor 
     U_Reflector: entity work.Reflector
         port map (
-            input_val  => wire_3,
-            output_val => char_out -- Hasil akhir langsung keluar
+            input_val  => wire_f3,
+            output_val => wire_r1 -- Outputnya masuk ke jalur mundur
         );
+		
+	U_Inv_Rotor3: entity work.Inverse_Rotor port map (
+        input_val => wire_r1, 
+        current_pos => pos_r3, -- Posisi sama dengan Rotor 3 asli
+        output_val => wire_r2
+    );
+
+    U_Inv_Rotor2: entity work.Inverse_Rotor port map (
+        input_val => wire_r2, 
+        current_pos => pos_r2, -- Posisi sama dengan Rotor 2 asli
+        output_val => wire_r3
+    );
+
+    U_Inv_Rotor1: entity work.Inverse_Rotor port map (
+        input_val => wire_r3, 
+        current_pos => pos_r1, -- Posisi sama dengan Rotor 1 asli
+        output_val => char_out -- Keluar ke Output Utama
+    );
 
 end Structural;
