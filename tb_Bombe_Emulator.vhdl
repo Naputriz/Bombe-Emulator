@@ -38,9 +38,10 @@ begin
 
     -- Stimulus Process
     process begin
-        -- KASUS 1: Cari Kunci supaya A jadi D (3) 
+        -- Kasus 1: Posisi 0
+        -- Kita cari tahu Rotor harus di posisi berapa supaya A (0) jadi G (6)?
         tb_char_in <= 0; 
-        tb_target  <= 3; 
+        tb_target  <= 6; 
         
         reset <= '1';
         wait for 20 ns;
@@ -50,8 +51,8 @@ begin
         wait until done = '1';
         wait for 50 ns;
         
-        -- KASUS 2: Cari Kunci supaya A jadi G (6) 
-        tb_target <= 6;
+        -- Cari target 2 (Seharusnnya di posisi 1, berdasarkan output tb_enigma_sentence)
+        tb_target <= 2;
         
         reset <= '1';
         wait for 20 ns;
