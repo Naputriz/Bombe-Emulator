@@ -9,6 +9,10 @@ entity Scrambler is
         pos_r1    : in  integer; 
         pos_r2    : in  integer;
         pos_r3    : in  integer;
+		
+		type_r1 : in integer range 0 to 2; -- Tipe Rotor 1
+        type_r2 : in integer range 0 to 2; -- Tipe Rotor 2
+        type_r3 : in integer range 0 to 2;  -- Tipe Rotor 3
         
         char_out  : out integer  -- Hasil enkripsi
     );
@@ -34,6 +38,7 @@ begin
         port map (
             input_val   => char_in,
             current_pos => pos_r1,
+			rotor_type => type_r1,
             output_val  => wire_f1  -- Keluar ke kabel 1
         );
 
@@ -42,6 +47,7 @@ begin
         port map (
             input_val   => wire_f1, -- Masuk dari kabel 1
             current_pos => pos_r2,
+			rotor_type => type_r2,
             output_val  => wire_f2  -- Keluar ke kabel 2
         );
 
@@ -50,6 +56,7 @@ begin
         port map (
             input_val   => wire_f2,
             current_pos => pos_r3,
+			rotor_type => type_r3,
             output_val  => wire_f3
         );
 
@@ -63,18 +70,21 @@ begin
 	U_Inv_Rotor3: entity work.Inverse_Rotor port map (
         input_val => wire_r1, 
         current_pos => pos_r3, -- Posisi sama dengan Rotor 3 asli
+		rotor_type => type_r3,
         output_val => wire_r2
     );
 
     U_Inv_Rotor2: entity work.Inverse_Rotor port map (
         input_val => wire_r2, 
         current_pos => pos_r2, -- Posisi sama dengan Rotor 2 asli
+		rotor_type => type_r2,
         output_val => wire_r3
     );
 
     U_Inv_Rotor1: entity work.Inverse_Rotor port map (
         input_val => wire_r3, 
         current_pos => pos_r1, -- Posisi sama dengan Rotor 1 asli
+		rotor_type => type_r1,
         output_val => char_out -- Keluar ke Output Utama
     );
 

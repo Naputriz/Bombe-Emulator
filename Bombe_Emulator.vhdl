@@ -7,7 +7,10 @@ entity Bombe_Emulator is
         reset_btn   : in  STD_LOGIC;
         finished    : out STD_LOGIC;
 		char_in     : in integer;
-		target_in   : in integer
+		target_in   : in integer;
+		rotor1_select : in  integer range 0 to 2;
+        rotor2_select : in  integer range 0 to 2;
+        rotor3_select : in  integer range 0 to 2
     );
 end Bombe_Emulator;
 
@@ -47,9 +50,14 @@ begin
     U_Scrambler: entity work.Scrambler
         port map (
             char_in   => char_in,
+			-- Posisi Rotor (Dikontrol Controller)
             pos_r1    => wire_pos_r1,
             pos_r2    => ZERO_POS,    
             pos_r3    => ZERO_POS,    
+			-- TIPE ROTOR (Dikontrol User)
+            type_r1   => rotor1_select, 
+            type_r2   => rotor2_select,
+            type_r3   => rotor3_select,
             char_out  => wire_char_out
         );
 
