@@ -1,91 +1,71 @@
-# Final Project PSD - Bombe Emulator (Key Cracking Machine) on VHDL
+# Final Project PSD - Bombe Emulator
 
-## Background
+## Project Overview
 
-The **Bombe** was an electromechanical device used by British cryptologists at Bletchley Park during World War II to help decipher German Enigma-machine-encrypted secret messages. While the Enigma machine was used to *encrypt* messages, the Bombe was designed to *break* them by discovering the daily settings (keys) of the Enigma rotors.
+This project implements a fully functional **Bombe Machine Emulator** on FPGA using VHDL. The Bombe was an electromechanical device used by British cryptologists during WWII to break the German Enigma cipher.
 
-This project aims to recreate the core functionality of the Bombe machine using VHDL. Unlike a standard Enigma simulator which takes plaintext and outputs ciphertext, this Bombe Emulator takes a known plaintext-ciphertext pair (a "crib") and automatically uses a brute-force algorithm to discover the correct Rotor Starting Position required to produce that encryption.
+Unlike a standard Enigma simulator that encrypts text, this Bombe Emulator performs a **Brute-Force Attack**. It takes a known "Crib" (a Plaintext-Ciphertext pair) and automatically searches through rotor positions to find the correct "Key" (Start Position) that generated that encryption.
 
-## High Level Design
+## Key Features 
 
-Our design implements a Single-Unit Reciprocal Bombe. It consists of a complete digital replica of the Enigma machine's electrical pathway (The Scrambler), controlled by a microprogrammed Finite State Machine (The Controller) that iterates through rotor positions until the correct key is found.
+* **Fully Reciprocal Scrambler:** Implements the accurate double-ended signal path of the Enigma M3.
+* **Configurable Rotors:** Supports dynamic selection of **Rotor I, II, and III** with accurate historical wiring.
+* **Configurable Reflectors:** Supports **UKW-A, UKW-B, and UKW-C** standards.
+* **Plugboard (Steckerbrett):** Includes a physical layer permutation stage at the input and output.
+* **Multi-Rotor Stepping:** The Controller implements the "Odometer" logic, allowing the machine to step through Rotor 1, Rotor 2, and Rotor 3 automatically to find keys in deeper search spaces.
+* **Microprogrammed Controller:** Uses a custom opcode set stored in ROM to control the search algorithm.
 
-### System Architecture
-The system is divided into four main modules:
+## System Architecture
 
-1.  Instruction ROM: Stores the microcode instructions (Opcodes) that define the search algorithm.
-2.  Controller: Fetches instructions from the ROM and controls the rotor positions.
-3.  Scrambler: A fully reciprocal digital Enigma replica (Forward + Inverse paths) that encrypts the input based on current rotor settings.
-4.  Comparator: Ccontinuously compares the Scrambler's output with the expected target (crib).
+The design is modular, consisting of five main components:
 
-### How it Works (The Algorithm)
-1. Input: The user provides a `char_in` (e.g., 'A') and a `target_in` (e.g., 'D').
-2.  Search Loop:
-    * The Controller sets the rotor to a position (starting at 0).
-    * The Scrambler processes the input through the full Enigma path.
-    * The Comparator checks if the output matches the `target_in`.
-3.  Condition:
-    * Match Found: The Controller stops, and the `finished` signal lights up. The current rotor position is the Key.
-    * No Match: The Controller increments the rotor position (steps the rotor) and loops back to check again.
+1.  **Instruction ROM:** Stores the microcode (Opcodes) for the search logic.
+2.  **Controller:** A Finite State Machine (FSM) that fetches instructions, manages the "Odometer" stepping logic for 3 rotors, and monitors the success signal.
+3.  **Scrambler:** The core cryptographic unit.
+    * **Path:** `Plugboard` $\rightarrow$ `Rotor 1` $\rightarrow$ `Rotor 2` $\rightarrow$ `Rotor 3` $\rightarrow$ `Reflector` $\rightarrow$ `InvRotor 3` $\rightarrow$ `InvRotor 2` $\rightarrow$ `InvRotor 1` $\rightarrow$ `Plugboard`.
+4.  **Plugboard:** Performs predefined letter swapping (e.g., A$\leftrightarrow$Z) before and after the rotor stages.
+5.  **Comparator:** Compares the Scrambler's output with the target ciphertext. If they match, it signals the Controller to stop.
 
-## Technical Implementation
+## How It Works (The Algorithm)
 
-### 1. The Scrambler (Reciprocal Architecture)
-Our Scrambler implements the Reciprocal (Double-Ended) nature of the Enigma machine. The signal path is:
-`Input` → `Rotor 1` → `Rotor 2` → `Rotor 3` → `Reflector` → `Inverse Rotor 3` → `Inverse Rotor 2` → `Inverse Rotor 1` → `Output`.
-
-This ensures that the encryption is mathematically accurate (If A encrypts to G, then G encrypts to A).
-
-* Rotor.vhd: Performs the forward substitution: `(Input + Position) % 26` mapped to the wiring table.
-* Inverse_Rotor.vhd: Performs the backward substitution: Maps the value back to the index and calculates `(Index - Position) % 26`.
-
-### 2. Microprogrammed Controller
-Instead of hardwiring the logic, we used a Microprogrammed approach. The behavior is defined in `Instruction_ROM.vhd` using custom opcodes:
-* `OP_LOAD`: Resets the system.
-* `OP_CHECK`: Checks the comparator output.
-* `OP_STEP`: Rotates the rotor.
-* `OP_LOOP`: Jumps back to the start of the check loop.
-* `OP_STOP`: Halts the system when the key is found.
-
-### 3. Bulletproof Logic
-Both `Rotor` and `Inverse_Rotor` modules include input sanitation logic. This prevents simulation crashes ("Index out of bound" errors) by forcing invalid or uninitialized signals to a safe default (0) during the first delta cycles of the simulation.
-
-## How to Use
-
-The project can be simulated in Vivado or Quartus + Modelsim.
-
-1.  Open the Project: Load all source files (`.vhd`) into the software.
-2.  Set Up the Test Case:
-    * Open `tb_Bombe_Emulator.vhd`.
-    * Set `tb_char_in` to your known plaintext (e.g., 0 for 'A').
-    * Set `tb_target` to your known ciphertext (e.g., 6 for 'G').
-3.  Run Simulation:
-    * Set `tb_Bombe_Emulator` as the Top Module.
-    * Run Behavioral Simulation.
-4.  Observe Results:
-    * Watch the `done` / `finished` signal. When it goes High ('1'), the search is complete.
-    * The value of `pos_r1` at that moment is the decrypted key.
+1.  **Setup:** The user configures the Rotor Types (e.g., I-II-III) and Reflector Type (e.g., UKW-B).
+2.  **Input:** The user provides a known pair: `char_in` (Plaintext) and `target_in` (Ciphertext).
+3.  **Search Loop:**
+    * The Controller sets the rotors to position `0-0-0`.
+    * The Scrambler encrypts `char_in`.
+    * **Check:** Does Output == `target_in`?
+        * **YES:** Assert `finished` signal. Output the current rotor positions (`found_r1`, `found_r2`, `found_r3`). STOP.
+        * **NO:** Step the rotors (+1). If Rotor 1 wraps around, step Rotor 2, etc. Repeat loop.
 
 ## Testing & Results
 
-We validated the design using two distinct testbenches to ensure both the encryption physics and the cracking logic were correct.
+The system was verified using two testbenches to validate both the cryptographic physics and the automated cracking capability.
 
-### 1. Verification of Reciprocity (`tb_Enigma_Sentence`)
-We manually tested the Scrambler to prove the "Double-Ended" logic works.
-* Test: Encrypting 'A' (0) yielded 'G' (6). Encrypting 'G' (6) with the same setting yielded 'A' (0).
-* Result: Verified. The machine behaves exactly like a physical Enigma.
-<img width="1073" height="230" alt="Screenshot 2025-12-05 213317" src="https://github.com/user-attachments/assets/d0df6968-ba77-476e-ae8a-58148f3cd19c" />
+### 1. Verification of Encryption & Reciprocity (`tb_Enigma_Sentence`)
+Before cracking, we verified that the Scrambler behaves like a real Enigma machine.
+* **Reciprocity Test:** We proved that if Input `A` encrypts to `B`, then Input `B` must encrypt back to `A` using the same settings.
+* **Golden Data Generation:** We used this testbench to generate valid "Cribs" (Target numbers) to test the Bombe.
+
+> **Output:** The log and waveform below shows a successful reciprocal test.
+<img width="1074" height="220" alt="image" src="https://github.com/user-attachments/assets/ad6b296a-c47c-4b87-abeb-ebaebc49b6a3" />
+<img width="1110" height="203" alt="image" src="https://github.com/user-attachments/assets/38b26d36-4800-49a7-a292-8af846c6a743" />
 
 ### 2. Verification of Automated Cracking (`tb_Bombe_Emulator`)
-We ran the Bombe Emulator against two specific cases to see if it could find the key automatically.
+We ran the Bombe Emulator against two scenarios to prove it can find keys dynamically.
 
-* Case 1 (Immediate Match):
-    * Target: 6 ('G'). Correct Key: 0.
-    * Result: the machine checked position 0, found a match immediately, and asserted the `finished` signal without stepping.
-* **Case 2 (Search Required):**
-    * Target: 2 ('C'). Correct Key: 1.
-    * Result: The machine checked position 0 (fail), stepped the rotor to position 1, checked again (match), and asserted `finished`.
+* **Scenario 1:**
+    * **Target:** `1` (Derived from `tb_Enigma_Sentence` for Position 0).
+    * **Expected Key:** Position 0.
+    * **Result:** The `done` signal goes High immediately. `result_r1` shows `0`.
+* **Scenario 2:**
+    * **Target:** `19` (Derived from `tb_Enigma_Sentence` for Position 1).
+    * **Expected Key:** Position 1.
+    * **Result:** The machine steps the rotor once, finds the match, and `done` goes High. `result_r1` shows `1`.
 
-<img width="1064" height="289" alt="Screenshot 2025-12-05 214224" src="https://github.com/user-attachments/assets/0ff9022f-2c8c-4fbc-8a78-e4f17d2282ec" />
+**Waveform Result:**
+The waveform below demonstrates the Controller iterating through positions. Notice how `result_r1` updates to the correct key when `done` becomes active (High).
+<img width="1060" height="425" alt="image" src="https://github.com/user-attachments/assets/601722ac-6797-4727-b427-243b858c17cb" />
 
-The simulation waveforms confirm that the Controller correctly executes the microcode loop and successfully "cracks" the rotor setting for any valid input pair.
+**Console Log Result:**
+The simulation console confirms the successful capture of the keys.
+<img width="1106" height="167" alt="image" src="https://github.com/user-attachments/assets/b546d00a-c7f9-47cf-be56-26f733452d7d" />
