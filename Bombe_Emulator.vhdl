@@ -10,7 +10,10 @@ entity Bombe_Emulator is
 		target_in   : in integer;
 		rotor1_select : in  integer range 0 to 2;
         rotor2_select : in  integer range 0 to 2;
-        rotor3_select : in  integer range 0 to 2
+        rotor3_select : in  integer range 0 to 2;
+		found_r1      : out integer;
+        found_r2      : out integer;
+        found_r3      : out integer
     );
 end Bombe_Emulator;
 
@@ -18,7 +21,9 @@ architecture Structural of Bombe_Emulator is
 
     signal wire_rom_addr : integer range 0 to 15 := 0; 
     signal wire_rom_data : std_logic_vector(3 downto 0):= (others => '0');
-    signal wire_pos_r1   : integer := 0; 
+    signal wire_pos_r1   : integer := 0;
+    signal wire_pos_r2   : integer := 0;
+    signal wire_pos_r3   : integer := 0; 
     signal wire_char_out : integer := 0; 
     signal wire_found    : std_logic := '0';
     
@@ -26,6 +31,10 @@ architecture Structural of Bombe_Emulator is
 
 begin
 
+	found_r1 <= wire_pos_r1;
+    found_r2 <= wire_pos_r2;
+    found_r3 <= wire_pos_r3;
+	
     -- 1. ROM
     U_ROM: entity work.Instruction_ROM
         port map (
@@ -42,6 +51,8 @@ begin
             rom_addr     => wire_rom_addr,
             rom_data     => wire_rom_data,
             pos_r1       => wire_pos_r1, 
+            pos_r2       => wire_pos_r2,
+            pos_r3       => wire_pos_r3, 
             found_signal => wire_found, 
             finished     => finished
         );
@@ -52,8 +63,8 @@ begin
             char_in   => char_in,
 			-- Posisi Rotor (Dikontrol Controller)
             pos_r1    => wire_pos_r1,
-            pos_r2    => ZERO_POS,    
-            pos_r3    => ZERO_POS,    
+            pos_r2    => wire_pos_r2, 
+            pos_r3    => wire_pos_r3, 
 			-- TIPE ROTOR (Dikontrol User)
             type_r1   => rotor1_select, 
             type_r2   => rotor2_select,
