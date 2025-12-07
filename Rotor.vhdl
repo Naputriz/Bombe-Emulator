@@ -33,54 +33,33 @@ architecture Dataflow of Rotor is
     );
 
 	-- Fungsi pembantu untuk perhitungan modulus (supaya tidak minus/overflow)
-    function calc_offset(val_in : integer; offset : integer) return integer is
-        variable safe_in : integer := 0;
-		variable safe_off : integer := 0; 
-        variable result  : integer := 0;
+    function mod26(val : integer) return integer is
+        variable res : integer;
     begin
-		-- 1. Sanitasi Input: Pastikan input bersih dari angka negatif/sampah
-        if (val_in >= 0) and (val_in <= 25) then
-            safe_in := val_in;
-        else
-            safe_in := 0; -- Default ke 0 jika error
-        end if;
-
-		if (offset >= 0) and (offset <= 25) then
-            safe_off := offset;
-        else
-            safe_off := 0; 
-        end if;
-		
-        -- 2. Hitung Penjumlahan
-        result := safe_in + safe_off;
-        
-        -- 3. Logika Modulo 
-        if result > 25 then 
-            result := result - 26;
-        elsif result < 0 then 
-            result := result + 26;
-        end if;
-        
-        -- 4. Return Final (Pasti tereksekusi karena di luar if-else)
-        return result;
+        res := val mod 26;
+        if res < 0 then res := res + 26; end if;
+        return res;
     end function;
 
 begin
 	process(input_val, current_pos, rotor_type)
-        variable selected_wire : integer;
-        variable calculated_idx : integer;
+        variable pin_in     : integer;
+        variable pin_out    : integer;
+        variable wire_out   : integer;
 	begin
-		-- Kalkulasi index berdasarkan rotasi
-		calculated_idx := calc_offset(input_val, current_pos);
+		-- 1. INPUT OFFSET: Masuk dari Stator ke Rotor (Geser Maju)
+        pin_in := mod26(input_val + current_pos);
 		
 		-- Pilih tabel berdasarkan tipe rotor
 		case rotor_type is
-				when 0 => selected_wire := ROTOR_I(calculated_idx);
-				when 1 => selected_wire := ROTOR_II(calculated_idx);
-				when 2 => selected_wire := ROTOR_III(calculated_idx);
-				when others => selected_wire := ROTOR_I(calculated_idx);
+            when 0 => pin_out := ROTOR_I(pin_in);
+            when 1 => pin_out := ROTOR_II(pin_in);
+            when 2 => pin_out := ROTOR_III(pin_in);
+            when others => pin_out := ROTOR_I(pin_in);
 		end case;
 	
-		output_val <= selected_wire;
+		wire_out := mod26(pin_out - current_pos);
+		
+		output_val <= wire_out;
 	end process;
 end Dataflow;

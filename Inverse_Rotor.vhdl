@@ -30,61 +30,34 @@ architecture Behavioral of Inverse_Rotor is
     );
 
     -- Mencari index dalam tabel spesifik
-    function find_index_in_table(val : integer; table : integer_array) return integer is
+    function mod26(val : integer) return integer is
+        variable res : integer;
     begin
-        for i in 0 to 25 loop
-            if table(i) = val then return i; 
-			end if;
-        end loop;
-        return 0;
-    end function;
-
-    -- Fungsi Reverse Offset: Kebalikan dari calc_offset di Rotor.vhdl
-    function calc_reverse_offset(base_idx : integer; offset : integer) return integer is
-        variable result : integer;
-    begin
-        result := base_idx - offset;
-        
-        -- Wrap around logika
-        if result < 0 then
-            result := result + 26;
-        end if;
-        return result;
+        res := val mod 26;
+        if res < 0 then res := res + 26; end if;
+        return res;
     end function;
 
 begin
     process(input_val, current_pos, rotor_type)
-        variable idx : integer;
-		variable safe_val : integer := 0;
-        variable safe_pos : integer := 0;
-		variable current_table : integer_array;
+        variable pin_in_left  : integer;
+        variable pin_out_right : integer;
+        variable wire_out     : integer;
     begin
-	
-		-- Sanitasi input (kalo gw ga setting ke 0 gini malah angka negatif gede jir di vivado gw)
-		if (input_val >= 0) and (input_val <= 25) then
-            safe_val := input_val;
-        else
-            safe_val := 0;
-        end if;
-
-        if (current_pos >= 0) and (current_pos <= 25) then
-            safe_pos := current_pos;
-        else
-            safe_pos := 0;
-        end if;
+		-- 1. INPUT OFFSET: Masuk dari Stator Kiri ke Rotor (Geser Maju)
+		pin_in_left := mod26(input_val + current_pos);
 		
-        -- Pilih inverse table
+		-- 2. WIRING: Lookup langsung ke Tabel Inverse (Kiri -> Kanan)
         case rotor_type is
-            when 0 => current_table := INV_ROTOR_I;
-            when 1 => current_table := INV_ROTOR_II;
-            when 2 => current_table := INV_ROTOR_III;
-            when others => current_table := INV_ROTOR_I;
+            when 0 => pin_out_right := INV_ROTOR_I(pin_in_left);
+            when 1 => pin_out_right := INV_ROTOR_II(pin_in_left);
+            when 2 => pin_out_right := INV_ROTOR_III(pin_in_left);
+            when others => pin_out_right := INV_ROTOR_I(pin_in_left);
         end case;
 		
-		-- Cari index di tabel yang dipilih
-		idx := find_index_in_table(safe_val, current_table);
+		-- 3. EXIT OFFSET: Keluar dari Rotor Kanan ke Stator (Geser Mundur)
+        wire_out := mod26(pin_out_right - current_pos);
         
-        -- Geser balik index tersebut sesuai posisi rotor
-        output_val <= calc_reverse_offset(idx, safe_pos);
+        output_val <= wire_out;
     end process;
 end Behavioral;
