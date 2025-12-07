@@ -6,6 +6,7 @@ entity Inverse_Rotor is
     Port ( 
         input_val   : in  integer; -- Sinyal balik dari reflektor/rotor sebelah
         current_pos : in  integer; -- Posisi putaran (sama dengan rotor pasangannya)
+		rotor_type  : in  integer range 0 to 2;
         output_val  : out integer
     );
 end Inverse_Rotor;
@@ -13,21 +14,29 @@ end Inverse_Rotor;
 architecture Behavioral of Inverse_Rotor is
     type integer_array is array (0 to 25) of integer;
     
-    -- Table SAMA PERSIS dengan Rotor.vhdl
-    constant wiring_table : integer_array := (
-        4, 10, 12, 5, 11, 6, 3, 16, 21, 25, 13, 19, 14, 22, 24, 7, 23, 20, 18, 15, 0, 8, 1, 17, 2, 9
-	--  A   B   C  D   E  F  G   H   I   J   K   L   M   N   O  P   Q   R   S   T  U  V  W   X  Y  Z
+    -- INVERSE ROTOR I (UWYGADFPVZBECKMTHXSLRINQOJ)
+    constant INV_ROTOR_I : integer_array := (
+        20, 22, 24, 6, 0, 3, 5, 15, 21, 25, 1, 4, 2, 10, 12, 19, 7, 23, 18, 11, 17, 8, 13, 16, 14, 9
     );
 
-    -- Fungsi Reverse Lookup: Mencari index berdasarkan nilai
-    function find_index_by_value(val : integer) return integer is
+    -- INVERSE ROTOR II (AJPCZWRLFBDKOTYUQGENHXMIVS)
+    constant INV_ROTOR_II : integer_array := (
+        0, 9, 15, 2, 25, 22, 17, 11, 5, 1, 3, 10, 14, 19, 24, 20, 16, 6, 4, 13, 7, 23, 12, 8, 21, 18
+    );
+
+    -- INVERSE ROTOR III (TAGBPCSDQEUFVNZHYIXJWLRKOM)
+    constant INV_ROTOR_III : integer_array := (
+        19, 0, 6, 1, 15, 2, 18, 3, 16, 4, 20, 5, 21, 13, 25, 7, 24, 8, 23, 9, 22, 11, 17, 10, 14, 12
+    );
+
+    -- Mencari index dalam tabel spesifik
+    function find_index_in_table(val : integer; table : integer_array) return integer is
     begin
         for i in 0 to 25 loop
-            if wiring_table(i) = val then
-                return i; -- Kalo ketemu, return index
-            end if;
+            if table(i) = val then return i; 
+			end if;
         end loop;
-        return 0; -- Default
+        return 0;
     end function;
 
     -- Fungsi Reverse Offset: Kebalikan dari calc_offset di Rotor.vhdl
@@ -44,10 +53,11 @@ architecture Behavioral of Inverse_Rotor is
     end function;
 
 begin
-    process(input_val, current_pos)
+    process(input_val, current_pos, rotor_type)
         variable idx : integer;
 		variable safe_val : integer := 0;
         variable safe_pos : integer := 0;
+		variable current_table : integer_array;
     begin
 	
 		-- Sanitasi input (kalo gw ga setting ke 0 gini malah angka negatif gede jir di vivado gw)
@@ -63,8 +73,16 @@ begin
             safe_pos := 0;
         end if;
 		
-        -- Cari input ini asalnya dari pin (index) nomor berapa?
-        idx := find_index_by_value(safe_val);
+        -- Pilih inverse table
+        case rotor_type is
+            when 0 => current_table := INV_ROTOR_I;
+            when 1 => current_table := INV_ROTOR_II;
+            when 2 => current_table := INV_ROTOR_III;
+            when others => current_table := INV_ROTOR_I;
+        end case;
+		
+		-- Cari index di tabel yang dipilih
+		idx := find_index_in_table(safe_val, current_table);
         
         -- Geser balik index tersebut sesuai posisi rotor
         output_val <= calc_reverse_offset(idx, safe_pos);

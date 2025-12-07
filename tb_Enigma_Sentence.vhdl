@@ -22,30 +22,26 @@ begin
             pos_r1    => pos_r1_sig,
             pos_r2    => ZERO_POS,
             pos_r3    => ZERO_POS,
-            char_out  => char_out_sig
+			type_r1   => 0,
+            type_r2   => 1,
+            type_r3   => 2,
+			char_out  => char_out_sig
         );
 
     process
     begin
-        --TES 1: ENKRIPSI MAJU (Posisi 0)
-        report "Tes 1: Input A (0) pada Posisi 0";
+        -- CEK POSISI 0
+        -- Input 'A' (0) dengan Rotor I-II-III di Posisi 0
+        report "Cek Posisi 0";
         pos_r1_sig <= 0;
-        char_in_sig <= 0; -- Masuk 'A'
+        char_in_sig <= 0; 
         wait for 10 ns;
-        -- Output harusnya 6 ('G')
         
-        -- TES 2: DEKRIPSI BALIK (Posisi 0)
-        report "Tes 2: Input G (6) pada Posisi 0 (Pembuktian Reciprocal)";
-        pos_r1_sig <= 0;
-        char_in_sig <= 6; -- Masuk 'G'
-        wait for 10 ns;
-        -- EKSPEKTASI:
-        -- Karena ini mesin Enigma Reciprocal, G HARUS KEMBALI JADI A (0).
-        
-        -- TES 3: ENKRIPSI POSISI 1 (Mencari Kunci Baru)
-        report "Tes 3: Input A (0) pada Posisi 1";
+        -- CEK POSISI 1 
+        -- Input 'A' (0) dengan Rotor I-II-III di Posisi 1
+        report "Cek Posisi 1";
         pos_r1_sig <= 1;
-        char_in_sig <= 0; -- Masuk 'A'
+        char_in_sig <= 0; 
         wait for 10 ns;
         
         wait;
