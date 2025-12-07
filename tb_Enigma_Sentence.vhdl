@@ -31,24 +31,18 @@ begin
 
     process
     begin
-        -- CEK POSISI 0
-        -- Input 'A' (0) dengan Rotor I-II-III di Posisi 0-0-0
-        report "Cek Posisi 0";
+       -- TES MAJU 
+        report "Tes Maju: A -> ?";
         pos_r1_sig <= 0;
-        char_in_sig <= 0; 
+        char_in_sig <= 0; -- Input 0 ('A')
         wait for 10 ns;
-		-- LIHAT WAVEFORM: Angka berapa yang keluar di 'char_out_sig'? 
-        -- Catat angka ini untuk tb_Bombe_Emulator (Target 1)
         
-        -- CEK POSISI 1 
-        -- Input 'A' (0) dengan Rotor I-II-III di Posisi 1-0-0
-        report "Cek Posisi 1";
-        pos_r1_sig <= 1;
-        char_in_sig <= 0; 
+        -- TES MUNDUR (Pembuktian Simetris)
+        report "Tes Mundur: B -> ?";
+        pos_r1_sig <= 0; -- Posisi rotor HARUS SAMA
+        char_in_sig <= 1; 
         wait for 10 ns;
-		-- LIHAT WAVEFORM: Angka berapa yang keluar di 'char_out_sig'?
-        -- Catat angka ini untuk tb_Bombe_Emulator (Target 2)
-        
+		
         wait;
     end process;
 
