@@ -22,6 +22,7 @@ architecture Sim of tb_Bombe_Emulator is
     signal tb_rot3 : integer := 2;
 	signal tb_ref  : integer := 1;
 	
+	-- Sinyal Output Hasil Kunci
 	signal result_r1 : integer;
     signal result_r2 : integer;
     signal result_r3 : integer;
@@ -64,26 +65,39 @@ begin
 		
         -- Kasus 1: Posisi 0
         tb_char_in <= 0; 
-        tb_target  <= 7; 
+        tb_target  <= 1; 
         
+		report "Mencari Kunci untuk Target 1 (Posisi 0)...";
         reset <= '1';
         wait for 20 ns;
         reset <= '0';
 
         -- Tunggu Case 1 selesai
         wait until done = '1';
+		
+		-- Cek Hasil
+        if result_r1 = 0 then
+            report "SUKSES! Kunci ditemukan di Posisi 0.";
+        else
+            report "GAGAL! Kunci salah.";
+        end if;
+		
         wait for 50 ns;
         
-        -- Cari target 2 
-        tb_target <= 3;
-        
+       -- SKENARIO 2: Cari Kunci Posisi 1 
+        tb_target <= 19; -- Hasil disesuaikan dengan enigma_sentence untuk testing
+        report "Mencari Kunci untuk Target 2 (Posisi 1)...";
         reset <= '1';
         wait for 20 ns;
         reset <= '0';
 
         -- Tunggu Case 2 selesai
         wait until done = '1'; 
-        wait for 50 ns;
+        if result_r1 = 1 then
+            report "SUKSES! Kunci ditemukan di Posisi 1.";
+        else
+            report "GAGAL! Kunci salah.";
+        end if;
 
         wait; -- Selesai simulasi
     end process;
