@@ -13,6 +13,8 @@ entity Scrambler is
 		type_r1 : in integer range 0 to 2; -- Tipe Rotor 1
         type_r2 : in integer range 0 to 2; -- Tipe Rotor 2
         type_r3 : in integer range 0 to 2;  -- Tipe Rotor 3
+		
+		type_ref : in integer range 0 to 2; 
         
         char_out  : out integer  -- Hasil enkripsi
     );
@@ -73,6 +75,7 @@ begin
     U_Reflector: entity work.Reflector
         port map (
             input_val  => wire_f3,
+			type_ref   => type_ref,
             output_val => wire_r1 -- Outputnya masuk ke jalur mundur
         );
 		
