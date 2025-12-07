@@ -20,6 +20,10 @@ architecture Sim of tb_Bombe_Emulator is
     signal tb_rot1 : integer := 0; 
     signal tb_rot2 : integer := 1;
     signal tb_rot3 : integer := 2;
+	
+	signal result_r1 : integer;
+    signal result_r2 : integer;
+    signal result_r3 : integer;
 
     constant clk_period : time := 10 ns;
 
@@ -34,7 +38,10 @@ begin
             target_in => tb_target,
 			rotor1_select => tb_rot1,
             rotor2_select => tb_rot2,
-            rotor3_select => tb_rot3,			
+            rotor3_select => tb_rot3,		
+			found_r1      => result_r1,
+            found_r2      => result_r2,
+            found_r3      => result_r3,
             
             finished  => done
         );
@@ -53,9 +60,8 @@ begin
         tb_rot3 <= 2; -- Rotor III
 		
         -- Kasus 1: Posisi 0
-        -- Kita cari tahu Rotor harus di posisi berapa supaya A (0) jadi G (6)?
         tb_char_in <= 0; 
-        tb_target  <= 4; 
+        tb_target  <= 7; 
         
         reset <= '1';
         wait for 20 ns;
@@ -65,8 +71,8 @@ begin
         wait until done = '1';
         wait for 50 ns;
         
-        -- Cari target 2 (Seharusnnya di posisi 1, berdasarkan output tb_enigma_sentence)
-        tb_target <= 9;
+        -- Cari target 2 
+        tb_target <= 3;
         
         reset <= '1';
         wait for 20 ns;

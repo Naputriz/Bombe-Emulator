@@ -13,6 +13,8 @@ entity Controller is
         
         -- Koneksi ke Scrambler
         pos_r1        : out integer; -- Mengontrol posisi Rotor 1
+		pos_r2        : out integer; 
+        pos_r3        : out integer; 
         
         -- Koneksi ke Comparator
         found_signal  : in  STD_LOGIC; -- Masukan dari Comparator (1 = Ketemu)
@@ -26,7 +28,12 @@ architecture Behavioral of Controller is
 
     -- Sinyal Internal untuk Program Counter (Penunjuk Baris)
     signal pc : integer range 0 to 15 := 0;
-    
+	
+    -- Register Posisi untuk 3 Rotor
+	signal curr_r1 : integer := 0;
+    signal curr_r2 : integer := 0;
+    signal curr_r3 : integer := 0;
+	
     -- Sinyal Internal untuk Posisi Rotor
     signal current_rotor_pos : integer := 0;
     
@@ -44,14 +51,18 @@ architecture Behavioral of Controller is
 begin
 
     -- Update Output Posisi ke Scrambler
-    pos_r1   <= current_rotor_pos;
+	pos_r1 <= curr_r1;
+    pos_r2 <= curr_r2;
+    pos_r3 <= curr_r3;
     rom_addr <= pc;
 
     process(clk, reset)
     begin
         if reset = '1' then
             pc <= 0;
-            current_rotor_pos <= 0;
+            curr_r1 <= 0;
+            curr_r2 <= 0;
+            curr_r3 <= 0;
             state <= FETCH;
             finished <= '0';
             
@@ -69,16 +80,33 @@ begin
                         
                         when OP_LOAD =>
                             -- Reset semuanya
-                            current_rotor_pos <= 0;
+                            curr_r1 <= 0;
+                            curr_r2 <= 0;
+                            curr_r3 <= 0;
                             pc <= pc + 1; -- Lanjut baris berikutnya
                             state <= FETCH;
 
                         when OP_STEP =>
-                            -- Putar Rotor (+1)
-                            if current_rotor_pos < 25 then
-                                current_rotor_pos <= current_rotor_pos + 1;
+                            -- Putar Rotor 1 dulu
+                            if curr_r1 < 25 then
+                                curr_r1 <= curr_r1 + 1;
                             else
-                                current_rotor_pos <= 0; -- Wrap around Z ke A
+                                -- R1 mentok, reset ke posisi 0 lalu putar R2
+                                curr_r1 <= 0;
+                                
+                                if curr_r2 < 25 then
+                                    curr_r2 <= curr_r2 + 1;
+                                else
+                                    -- R2 mentok, reset ke posisi 0, lalu putar R3
+                                    curr_r2 <= 0;
+                                    
+                                    if curr_r3 < 25 then
+                                        curr_r3 <= curr_r3 + 1;
+                                    else
+                                        -- Semua mentok, reset semua
+                                        curr_r3 <= 0;
+                                    end if;
+                                end if;
                             end if;
                             pc <= pc + 1;
                             state <= FETCH;

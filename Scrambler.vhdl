@@ -30,13 +30,22 @@ architecture Structural of Scrambler is
     signal wire_r1 : integer := 0; -- Reflector -> Inv_R3
     signal wire_r2 : integer := 0; -- Inv_R3 -> Inv_R2
     signal wire_r3 : integer := 0; -- Inv_R2 -> Inv_R1 (Output)
+	
+	signal wire_plug_in  : integer := 0; -- Output dari Plugboard Depan
+    signal wire_plug_out : integer := 0; -- Output dari Plugboard Belakang
 
 begin
+
+	U_Plug_In: entity work.Plugboard 
+        port map (
+            input_val  => char_in,
+            output_val => wire_plug_in -- Hasil tukar masuk ke Rotor
+        );
 
     -- Instansiasi Rotor 1 
     U_Rotor1: entity work.Rotor
         port map (
-            input_val   => char_in,
+            input_val   => wire_plug_in ,
             current_pos => pos_r1,
 			rotor_type => type_r1,
             output_val  => wire_f1  -- Keluar ke kabel 1
@@ -85,7 +94,13 @@ begin
         input_val => wire_r3, 
         current_pos => pos_r1, -- Posisi sama dengan Rotor 1 asli
 		rotor_type => type_r1,
-        output_val => char_out -- Keluar ke Output Utama
+        output_val => wire_plug_out -- Keluar ke Output Utama
     );
+	
+	U_Plug_Out: entity work.Plugboard 
+        port map (
+            input_val  => wire_plug_out,
+            output_val => char_out
+        );
 
 end Structural;
