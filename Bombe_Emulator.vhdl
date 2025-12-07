@@ -13,7 +13,8 @@ entity Bombe_Emulator is
         rotor3_select : in  integer range 0 to 2;
 		found_r1      : out integer;
         found_r2      : out integer;
-        found_r3      : out integer
+        found_r3      : out integer;
+		reflector_select : in integer range 0 to 2
     );
 end Bombe_Emulator;
 
@@ -69,6 +70,7 @@ begin
             type_r1   => rotor1_select, 
             type_r2   => rotor2_select,
             type_r3   => rotor3_select,
+			type_ref => reflector_select,
             char_out  => wire_char_out
         );
 

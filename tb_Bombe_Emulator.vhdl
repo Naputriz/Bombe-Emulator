@@ -15,11 +15,12 @@ architecture Sim of tb_Bombe_Emulator is
     signal tb_char_in : integer := 0;
     signal tb_target  : integer := 0;
 	
-	-- Sinyal Konfigurasi Rotor 
-    -- Default kita set: I - II - III
+	-- Sinyal Konfigurasi mesin
+    -- Default kita set: I - II - III dengan reflector B
     signal tb_rot1 : integer := 0; 
     signal tb_rot2 : integer := 1;
     signal tb_rot3 : integer := 2;
+	signal tb_ref  : integer := 1;
 	
 	signal result_r1 : integer;
     signal result_r2 : integer;
@@ -39,6 +40,7 @@ begin
 			rotor1_select => tb_rot1,
             rotor2_select => tb_rot2,
             rotor3_select => tb_rot3,		
+			reflector_select => tb_ref,
 			found_r1      => result_r1,
             found_r2      => result_r2,
             found_r3      => result_r3,
@@ -58,6 +60,7 @@ begin
         tb_rot1 <= 0; -- Rotor I
         tb_rot2 <= 1; -- Rotor II
         tb_rot3 <= 2; -- Rotor III
+		tb_ref  <= 1; -- Pakai Reflector B
 		
         -- Kasus 1: Posisi 0
         tb_char_in <= 0; 
